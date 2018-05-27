@@ -3,15 +3,16 @@
 const express = require('express');
 const superagent = require('superagent');
 const dotenv = require('dotenv');
+const cookie = require('cookie');
 const app = express();
 
 dotenv.load();
 
-app.get('/oauth/google/code', function(req, res) {
+app.get('/oauth-callback', function(req, res) {
   if (!req.query.code) {
     res.redirect(process.env.CLIENT_URL);
   } else {
-    console.log('CODE: ', req.query.code);
+    console.log('CODE: ', req.query.code, process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET);
     superagent.post('https://www.googleapis.com/oauth2/v4/token')
       .type('form')
       .send({
@@ -19,22 +20,26 @@ app.get('/oauth/google/code', function(req, res) {
         grant_type: 'authorization_code',
         client_id: process.env.GOOGLE_CLIENT_ID,
         client_secret: process.env.GOOGLE_CLIENT_SECRET,
-        redirect_uri: `${process.env.API_URL}/oauth/google/code`
+        redirect_uri: `${process.env.API_URL}/oauth-callback`
       })
       .then(response => {
-        console.log('Response AFTER code is given', response.body);
-        return superagent.get('https://www.googleapis.com/plus/v1/people/me/openIdConnect')
-          .set('Authorization', `Bearer ${response.body.access_token}`);
-      })
-      .then(response => {
-        console.log(':::OPEN ID - GOOGLE PLUS:::', response.body);
+        let {access_token, id_token} = response.body;
+        let payload = id_token.split('.')[1];
+        let decoded = Buffer.from(payload, 'base64').toString();
+        let json = JSON.parse(decoded);
+        console.log('access', access_token);
+        console.log('id', id_token);
         res.cookie('X-Some-Cookie', 'some token');
-        res.redirect(process.env.CLIENT_URL);
+        res.write('Welcome ' + json.given_name + '!');
+        res.end();
+      })
+      .catch(err => {
+        console.log(err);
       });
   }
 });
 
-app.get('/oauth-callback', (req, res) => {
+app.get('*', (req, res) => {
   res.sendFile('./index.html', {root:'./'});
 });
 
