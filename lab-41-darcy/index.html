@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>OAuth Login</title>
+  <link rel="stylesheet" type="text/css" href="./style/main.css">
+</head>
+
+<body>
+  <h1>Welcome to Darcy's COOL App!</h1>
+
+  <script>
+    let a = document.createElement('a');
+    let AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
+    let clientIDQuery = 'client_id=903913752466-ulp2lpulgdim543lla4qosscf0hkovlk.apps.googleusercontent.com';
+    let responseTypeQuery = 'response_type=code';
+    let scopeQuery = 'scope=openid%20profile%20email';
+    let promptQuery = 'prompt-consent';
+    let redirectURIQuery = 'redirect_uri=http://localhost:3000/oauth-callback';
+    let formattedURL = `${AUTH_URL}?${clientIDQuery}&${responseTypeQuery}&${scopeQuery}&${promptQuery}&${redirectURIQuery}`;
+
+    a.setAttribute('href', formattedURL);
+    a.textContent = 'login with Google';
+    document.body.append(a)
+  </script>
+</body>
+
+</html>
